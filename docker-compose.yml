@@ -1,0 +1,32 @@
+services:
+  mcp-server:
+    build: .
+    environment:
+      - MCP_HOST=0.0.0.0
+      - MCP_PORT=8000
+      - DNS_TIMEOUT=${DNS_TIMEOUT:-5}
+      - DNS_RETRIES=${DNS_RETRIES:-3}
+      - DEFAULT_RESOLVER=${DEFAULT_RESOLVER:-}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+  nginx:
+    build: ./nginx
+    ports:
+      - "${HTTPS_PORT:-8088}:443"
+    volumes:
+      - nginx-certs:/etc/nginx/certs
+    depends_on:
+      - mcp-server
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+networks:
+  mcp-network:
+    driver: bridge
+
+volumes:
+  nginx-certs:
